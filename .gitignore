@@ -2,3 +2,5 @@
 .env
 
 sample.json
+__pycache__
+.vscode
