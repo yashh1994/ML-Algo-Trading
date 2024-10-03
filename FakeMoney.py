@@ -1,46 +1,56 @@
 from datetime import datetime
-from typing import Dict
 
 class FakeWallet:
-    def __init__(self, balance: float) -> None:
+    def __init__(self, balance: float, coin_symbol: str) -> None:
         self.balance = balance
-        self.coin = ""
-        self.price_of_init = 0
+        self.coin_symbol = coin_symbol
+        self.price_of_coin = 0
         self.side = "None"
         self.limit = balance
         self.date_of_creation = datetime.now()
-        self.coin_quntity = 0
+        self.coin_quantity = 0
 
-
-    def buy_coin(self, coin_symbol: str, coin_price: float, coin_quantity: float,side:str) -> None:
-        if coin_price * coin_quantity > self.balance:
-            raise ValueError("Insufficient balance to buy the coin.")
+    def buy_coin(self, coin_price: float, coin_quantity: float, order: str) -> None:
+        if order == "long":
+            if coin_price * coin_quantity > self.balance:
+                raise ValueError("Insufficient balance to buy the coin.")
+            self.balance -= (coin_price * coin_quantity)
+            self.coin_quantity += coin_quantity
+            self.price_of_coin = coin_price
+            self.side = "long"
+        elif order == "short":
+            self.side = "short"
+            self.balance += (coin_price * coin_quantity)
+            self.coin_quantity -= coin_quantity
+            self.price_of_coin = coin_price
         else:
-            self.balance -= coin_price * coin_quantity
-            self.coin = coin_symbol
-            self.price_of_init = coin_price
-            self.coin_quntity = coin_quantity
-            self.side = side
+            raise ValueError(f"Order is not defined: {order}")
 
-    def sell_coin(self, coin_symbol: str, coin_price: float, coin_quantity: float) -> None:
-        if self.coin != coin_symbol:
-            raise ValueError("unknown Coin")
+    def sell_coin(self, coin_price: float, coin_quantity: float, order: str) -> None:
+        if self.coin_quantity < coin_quantity:
+            raise ValueError("Insufficient coin quantity to sell.")
         else:
-            self.coin_quntity -= coin_quantity
-            self.balance += ()
+            if order == "long":
+                self.balance += (coin_price * coin_quantity)
+                self.coin_quantity -= coin_quantity
+                self.price_of_coin = coin_price
+            elif order == "short":
+                self.balance -= (coin_price * coin_quantity)
+                self.coin_quantity += coin_quantity
+            else:
+                raise ValueError(f"Order is not defined: {order}")
 
-    def wallet_status(self) -> str:
-        total_gain = self.balance - self.limit
-        return (f"Balance is {self.balance}, coins in Wallet are {self.coin_to_number_of} "
-                f"with Total Gain of {total_gain}, wallet created on {self.date_of_creation}")
+    def get_pos_side(self) -> bool:
+        if self.coin_quantity != 0:
+            return True,self.side
+        else:
+            return False,None
 
-    def current_value(self, current_prices: Dict[str, float]) -> float:
-        total_value = self.balance
-        for coin, quantity in self.coin_to_number_of.items():
-            total_value += quantity * current_prices.get(coin, 0)
-        return total_value
-
-    def is_open_position(self,symbol):
-        if symbol in self.coin_to_number_of:
-            return self.coin_to_number_of[symbol] != 0
-        return False
+    def status(self) -> None:
+        print(f"Balance: {self.balance}")
+        print(f"Coin Symbol: {self.coin_symbol}")
+        print(f"Price of Coin: {self.price_of_coin}")
+        print(f"Coin Quantity: {self.coin_quantity}")
+        print(f"Side: {self.side}")
+        print(f"Limit: {self.limit}")
+        print(f"Date of Creation: {self.date_of_creation}")
